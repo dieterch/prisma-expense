@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "sqlite" // Oder eine andere DB wie MySQL, SQLite, etc.
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  trips     TripUser[]  // Beziehung zu den Trips
+  expenses  Expense[]   // Ausgaben des Nutzers
+  shares    TripShare[] // Anteil an den Gesamtkosten pro Trip
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trip {
+  id         Int       @id @default(autoincrement())
+  name       String
+  startDate  DateTime
+  endDate    DateTime
+  users      TripUser[] // Teilnehmer des Trips
+  expenses   Expense[]  // Ausgaben des Trips
+  shares     TripShare[] // Aufteilung der Trip-Gesamtkosten
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model TripUser {
+  id     Int   @id @default(autoincrement())
+  user   User  @relation(fields: [userId], references: [id])  // Bezug zur User-Tabelle
+  userId Int
+  trip   Trip  @relation(fields: [tripId], references: [id])  // Bezug zur Trip-Tabelle
+  tripId Int
+
+  @@unique([userId, tripId])
+}
+
+model Expense {
+  id          Int           @id @default(autoincrement())
+  amount      Float
+  currency    String
+  date        DateTime
+  location    String
+  description String?
+  trip        Trip          @relation(fields: [tripId], references: [id])
+  tripId      Int
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  category    Category      @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model TripShare {
+  id         Int     @id @default(autoincrement())
+  percentage Float   // Der prozentuale Anteil an den Trip-Ausgaben
+  user       User    @relation(fields: [userId], references: [id]) // Bezug zum User
+  userId     Int
+  trip       Trip    @relation(fields: [tripId], references: [id]) // Bezug zum Trip
+  tripId     Int
+
+  @@unique([userId, tripId]) // Sicherstellen, dass jeder User pro Trip nur einen Anteil hat
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  icon      String
+  expenses  Expense[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
