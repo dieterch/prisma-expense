@@ -12,8 +12,10 @@ async function main() {
               select: {
                 user: {
                     select: {
+                        id: true,
                         name: true,
                         email: true,
+                        shares: true,
                     }
                 },
               },
@@ -21,10 +23,17 @@ async function main() {
             expenses: {
               select: {
                 date:true,
-                category: true,
+                location:true,
+                category: {
+                    select: {
+                        icon: true,
+                        name: true,
+                    }
+                },
                 amount:true,
                 currency:true,
                 description:true,
+                userId:true,
                 user: {
                     select: {
                         name:true,
